@@ -9,6 +9,7 @@ services:
       GLPI_DB_HOST: ${DB_HOST:?DB_HOST is required}
       GLPI_DB_NAME: ${DB_NAME:?DB_NAME is required}
       GLPI_DB_USER: ${DB_USER:?DB_USER is required}
+      GLPI_DB_PORT: ${DB_PORT:-3306}
       GLPI_DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       TZ: ${TZ:-Asia/Taipei}
     ports:
@@ -23,7 +24,7 @@ services:
 
   glpi-db:
     image: "mariadb:${DB_VER:-latest}"
-    container_name: glpi-db
+    container_name: ${DB_HOST:?DB_HOST is required}
     command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
     environment:
       MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
