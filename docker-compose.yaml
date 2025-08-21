@@ -1,0 +1,57 @@
+version: '3.8'
+
+services:
+  glpi:
+    image: "glpi/glpi:${GLPI_VERSION:-latest}"
+    container_name: glpi-web
+    environment:
+      # DB connection (required)
+      GLPI_DB_HOST: ${DB_HOST:?DB_HOST is required}
+      GLPI_DB_NAME: ${DB_NAME:?DB_NAME is required}
+      GLPI_DB_USER: ${DB_USER:?DB_USER is required}
+      GLPI_DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      TZ: ${TZ:-Asia/Taipei}
+    ports:
+      - 8081:80
+    volumes:
+      - glpi-storage:/var/www/html:rw
+    depends_on:
+      - glpi-db
+    networks:
+      - shared-network
+    restart: always
+
+  glpi-db:
+    image: "mariadb:${DB_VER:-latest}"
+    container_name: glpi-db
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_bin
+    environment:
+      MARIADB_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:?DB_ROOT_PASSWORD is required}
+      MARIADB_DATABASE: ${DB_NAME:?DB_NAME is required}
+      MARIADB_USER: ${DB_USER:?DB_USER is required}
+      MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+    volumes:
+      - glpi-db-data:/var/lib/mysql
+    networks:
+      - shared-network
+    restart: always
+
+volumes:
+  glpi-db-data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${GLPI_DB_DATA_DIR}
+
+  glpi-storage:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${GLPI_STORAGE_DIR}
+
+networks:
+  shared-network:
+    external: true
+    name: shared-network
