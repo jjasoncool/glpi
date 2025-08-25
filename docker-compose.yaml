@@ -3,7 +3,7 @@ version: '3.8'
 services:
   glpi:
     image: "glpi/glpi:${GLPI_VERSION:-latest}"
-    container_name: glpi-web
+    container_name: glpi
     environment:
       # DB connection (required)
       GLPI_DB_HOST: ${DB_HOST:?DB_HOST is required}
