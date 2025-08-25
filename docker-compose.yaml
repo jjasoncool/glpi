@@ -15,7 +15,7 @@ services:
     ports:
       - 8081:80
     volumes:
-      - glpi-storage:/var/www/html:rw
+      - glpi-storage:/var/glpi:rw
     depends_on:
       - glpi-db
     networks:
@@ -36,6 +36,32 @@ services:
     networks:
       - shared-network
     restart: always
+
+  # One-shot service to remove install/ after GLPI installation completes
+  glpi-postinstall:
+    image: busybox:1.36
+    depends_on:
+      - glpi
+    volumes:
+      - glpi-storage:/var/www/glpi:rw
+    entrypoint: /bin/sh -c
+    command: |
+      i=0
+      echo "glpi-postinstall: waiting for config/config_db.php"
+      while [ $i -lt 90 ]; do
+        if [ -f /var/www/glpi/config/config_db.php ]; then
+          echo "config found, removing install files"
+          # optional backup: tar -czf /var/www/glpi/install-backup-$(date +%s).tgz /var/www/glpi/install || true
+          rm -f /var/www/glpi/install/install.php || true
+          rm -rf /var/www/glpi/install || true
+          echo "install removed"
+          exit 0
+        fi
+        i=$((i+1))
+        sleep 2
+      done
+      echo "glpi-postinstall: timeout waiting for config, exiting"; exit 0
+    restart: 'no'
 
 volumes:
   glpi-db-data:
