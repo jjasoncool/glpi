@@ -108,4 +108,34 @@ environment:
 
 這會把 `.env` 的 `DB_HOST` 傳入容器內的 `GLPI_DB_HOST`。
 
+## setup.sh — 一鍵啟動與安裝完成清理
+
+專案包含 `setup.sh`，提供一個簡單流程：執行 `init.sh`（若存在）、以 `docker compose up -d` 啟動服務，並在 GLPI 安裝完成後自動移除安裝器檔案 `install/install.php`。
+
+使用方式：
+
+```bash
+cd /path/to/glpi
+./setup.sh
+```
+
+可設定環境變數：
+
+- `WAIT_TIMEOUT`：等待安裝完成的最大秒數，預設 `600`（10 分鐘）。
+- `POLL_INTERVAL`：輪詢間隔（秒），預設 `5`。
+- `CONTAINER_NAME`：目標 container 名稱，預設 `glpi`（可在執行前匯出或在 shell 中覆寫）。
+
+判斷 GLPI 是否完成安裝的邏輯（腳本內實作）：
+
+1. 確認容器內 `/var/glpi/config/config_db.php` 與 `/var/glpi/config/glpicrypt.key` 存在且非空。
+2. 確認 GLPI 首頁能回應 HTTP 200（優先透過 host 的 port mapping 檢查 127.0.0.1:HostPort，若不可行則在 container 內使用 `curl` 檢查）。
+
+注意：
+
+- 若 host 無法直接存取 container（沒有對外映射 port）且 container 內沒有 `curl`，HTTP 檢查會失敗，腳本會視為尚未完成安裝並持續輪詢直到超時。
+- 若在安裝尚未完成時強制移除安裝器，可能造成系統無法正確安裝或運作；若確定要強制移除，手動執行：
+
+```bash
+docker exec glpi rm -f /var/www/glpi/install/install.php
+```
 ---
