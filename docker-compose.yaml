@@ -29,6 +29,7 @@ services:
       MARIADB_DATABASE: ${DB_NAME:?DB_NAME is required}
       MARIADB_USER: ${DB_USER:?DB_USER is required}
       MARIADB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
+      TZ: ${TZ:-Asia/Taipei}
     volumes:
       - glpi-db-data:/var/lib/mysql
     networks:
